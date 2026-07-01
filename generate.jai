@@ -172,7 +172,7 @@ generate_bindings :: (args: [] string, minimum_os_version: type_of(Build_Options
             lib_directory = "macos";
             cmake_preset = "macos";
             build_preset = "macos-release";
-            lib_file_pattern = "libbox3d.a";
+            lib_file_pattern = "box3d.a";
         case .ANDROID;
             lib_directory = ifx cpu_target == .X64 then "android/x64" else "android/arm64";
             cmake_preset = "linux-release";
