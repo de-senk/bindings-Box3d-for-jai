@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai ./generate.jai - -compile
+// jai c:/_paths/my_modules/box3d//generate.jai modules +jails_diagnostics import_dir c:/Users/iuser/.vscode/extensions/apparentlystudio.jails-0.2.22/out/metaprogram
 //
 
 
