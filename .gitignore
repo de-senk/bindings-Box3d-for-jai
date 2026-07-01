@@ -59,6 +59,7 @@ Mkfile.old
 dkms.conf
 
 build/
+.build/
 imgui.ini
 settings.ini
 .vscode/

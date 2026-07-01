@@ -1,7 +1,9 @@
-
+//
 //idk how to include a folder using build_cpp procedure.
+box3d_dir :: "box3d-0.1.0";
+cmake_build_dir :: #run tprint("%/build", box3d_dir);
+
 BOX3D_MAIN_HEADER_FILE_RELATIVE_PATH :: "-I\\box3d-0.1.0\\include";
-//BOX3D_MAIN_C_FILE_RELATIVE_PATH_FOR_COMPILING :: "./box3d-0.1.0/src/main.c";
 
 
 BOX3D_INCLUDE_FILES :: string.[
@@ -151,49 +153,46 @@ generate_bindings :: (args: [] string, minimum_os_version: type_of(Build_Options
 
     build_dynamic_lib := true;
     lib_directory: string;
+    cmake_preset: string;
+    build_preset: string;
+    lib_file_pattern: string;
+    
     if os_target == {
         case .WINDOWS;
             lib_directory = "windows";
+            cmake_preset = "windows";
+            build_preset = "windows-release";
+            lib_file_pattern = "box3d.lib";
         case .LINUX;
             lib_directory = "linux";
+            cmake_preset = "linux-release";
+            build_preset = "linux-release";
+            lib_file_pattern = "libbox3d.a";
         case .MACOS;
             lib_directory = "macos";
+            cmake_preset = "macos";
+            build_preset = "macos-release";
+            lib_file_pattern = "libbox3d.a";
         case .ANDROID;
             lib_directory = ifx cpu_target == .X64 then "android/x64" else "android/arm64";
+            cmake_preset = "linux-release";
+            build_preset = "linux-release";
+            lib_file_pattern = "libbox3d.a";
         case .PS5;
             build_dynamic_lib = false;
             lib_directory = "ps5";
+            cmake_preset = "ps5";
+            build_preset = "ps5-release";
+            lib_file_pattern = "libbox3d.a";
         case;
             assert(false);
     }
 
     if compile {
         make_directory_if_it_does_not_exist(lib_directory, recursive = true);
-        lib_path := tprint("%/%", lib_directory, LIB_BASE_NAME);
-        success := true;
-        if os_target == .MACOS {
-            success &&= Build_Cpp.build_universal_macos_binary(lib_path, ..BOX3D_SOURCE_FILES, type = .DYNAMIC_LIBRARY, debug = compile_debug);
-            success &&= Build_Cpp.build_universal_macos_binary(lib_path, ..BOX3D_SOURCE_FILES, type = .STATIC_LIBRARY,  debug = compile_debug);
-        } else {
-            extra: [..] string;
-            if os_target == .ANDROID {
-                _, target_triple_with_sdk := get_android_target_triple(cpu_target);
-                array_add(*extra, "-target", target_triple_with_sdk);
-            }
-            if os_target == .WINDOWS {
-                array_add(*extra, "-DSTBIW_WINDOWS_UTF8");
-            } else {
-                array_add(*extra, "-fPIC");
-            }
-            array_add(*extra, BOX3D_MAIN_HEADER_FILE_RELATIVE_PATH);
-
-            if build_dynamic_lib {
-                success &&= Build_Cpp.build_cpp_dynamic_lib(lib_path, ..BOX3D_SOURCE_FILES, target = os_target, debug = compile_debug, extra = extra);
-            }
-            success &&= Build_Cpp.build_cpp_static_lib(lib_path, ..BOX3D_SOURCE_FILES, target = os_target, debug = compile_debug, extra = extra);
-        }
-
-        if !success     return false;
+        
+        success := compile_with_cmake(lib_directory, cmake_preset, build_preset, compile_debug, os_target);
+        if !success return false;
     }
 
     options: Generate_Bindings_Options;
@@ -252,13 +251,110 @@ FOOTER_TEMPLATE :: #string END
 
 END
 
+compile_with_cmake :: (lib_directory: string, cmake_preset: string, build_preset: string, debug: bool, os_target: type_of(OS)) -> bool {
+    
+    old_dir := get_working_directory();
+    defer set_working_directory(old_dir);
+    set_working_directory(box3d_dir);
+    
+    // Run cmake configure step
+    print("Running CMake configure with preset: %\n", cmake_preset);
+    configure_cmd := tprint("cmake --preset %", cmake_preset);
+    #import "String";
+    arr_configure_cmd :=  split(configure_cmd, " "); // Split the command into an array of strings
+   run_or_exit(arr_configure_cmd, get_working_directory()) ;    
+    // Run cmake build step
+    print("Running CMake build with preset: %\n", build_preset);
+    build_cmd := tprint("cmake --build --preset %", build_preset);
+    arr_build_cmd :=  split(build_cmd, " "); // Split the command into an array of strings
+    run_or_exit(arr_build_cmd, get_working_directory());
+    
+    // Go back to original directory for copying
+    set_working_directory(old_dir);
+    
+    // Copy the compiled library to the destination directory
+    print("Copying compiled library to %\n", lib_directory);
+    if !copy_compiled_library(box3d_dir, lib_directory, os_target, debug) {
+        print("ERROR: Failed to copy compiled library\n");
+        return false;
+    }
+    
+    print("Successfully compiled and copied box3d library\n");
+    return true;
+}
+
+run_or_exit :: (command: [] string, working_directory: string) {
+    // Enable this to see the commands being executed.
+    // print("Executing command \"%\" in directory \"%\"\n", join(..command, separator = " "), working_directory);
+
+    result, output_string, error_string := run_command(..command, working_directory = working_directory, capture_and_return_output = true, print_captured_output = true);
+    defer {
+        free(output_string);
+        free(error_string);
+    }
+    if result.exit_code != 0 {
+        log_error("Could not run command \"%\" in directory \"%\". Exit code: %\nError:\n%", get_quoted_command_string(command), working_directory, result.exit_code, error_string);
+        exit(1);
+    }
+}
+
+execute_command :: (command: string) -> Process_Result {
+    Process :: #import "Process";
+    
+    return Process.run_command(command);
+}
+
+copy_compiled_library :: (box3d_dir: string, dest_dir: string, os_target: type_of(OS), debug: bool) -> bool {
+    
+    source_path: string;
+    if os_target == {
+        case .WINDOWS;
+            source_path = tprint("%/src/Release/box3d.lib", cmake_build_dir);
+        case .LINUX;
+            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+        case .MACOS;
+            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+        case .ANDROID;
+            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+        case .PS5;
+            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+        case;
+            print("ERROR: Unknown OS target\n");
+            return false;
+    }
+    
+    dest_path := tprint("%/box3d.lib", dest_dir);
+    if os_target != .WINDOWS {
+        if debug {
+            dest_path = tprint("%/libbox3d_d.a", dest_dir);
+        } else {
+            dest_path = tprint("%/libbox3d.a", dest_dir);
+        }
+    }
+    
+    print("Copying from: %\n", source_path);
+    print("Copying to: %\n", dest_path);
+    
+    if !file_exists(source_path) {
+        print("ERROR: Source library not found at: %\n", source_path);
+        return false;
+    }
+    
+    if !copy_file(source_path, dest_path) {
+        print("ERROR: Failed to copy file from % to %\n", source_path, dest_path);
+        return false;
+    }
+    
+    return true;
+}
 
 #import "Basic";
 BG :: #import "Bindings_Generator"(NINTENDO_SUPPORT = NINTENDO_SUPPORT);
-Build_Cpp :: #import "BuildCpp"()(PS5_SUPPORT = PS5_SUPPORT, NINTENDO_SUPPORT = NINTENDO_SUPPORT);
 #import "Compiler";
 #import "File";
+#import "File_Utilities";
 #import "Android/Toolchain";
+#import "Process";
 #if OS == .WINDOWS {
     #import "Windows";
 } else {
