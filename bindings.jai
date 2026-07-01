@@ -3294,17 +3294,17 @@ b3Contact_GetData :: (contactId: b3ContactId) -> b3ContactData #foreign box3d;
 #if OS == .WINDOWS {
     box3d :: #library,no_dll "windows/box3d";
 } else #if OS == .LINUX {
-    box3d :: #library "linux/box3d";
+    box3d :: #library,no_dll "linux/box3d";
 } else #if OS == .MACOS {
-    box3d :: #library "macos/box3d";
+    box3d :: #library,no_dll "macos/box3d";
 } else #if OS == .ANDROID {
     #if CPU == .X64 {
-        box3d :: #library "android/x64/box3d";
+        box3d :: #library,no_dll "android/x64/box3d";
     } else #if CPU == .ARM64 {
-        box3d :: #library "android/arm64/box3d";
+        box3d :: #library,no_dll "android/arm64/box3d";
     }
 } else #if OS == .PS5 {
-    box3d :: #library "ps5/box3d";
+    box3d :: #library,no_dll "ps5/box3d";
 } else {
     #assert false;
 }

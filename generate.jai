@@ -167,7 +167,7 @@ generate_bindings :: (args: [] string, minimum_os_version: type_of(Build_Options
             lib_directory = "linux";
             cmake_preset = "linux-release";
             build_preset = "linux-release";
-            lib_file_pattern = "libbox3d.a";
+            lib_file_pattern = "box3d.a";
         case .MACOS;
             lib_directory = "macos";
             cmake_preset = "macos";
@@ -177,13 +177,13 @@ generate_bindings :: (args: [] string, minimum_os_version: type_of(Build_Options
             lib_directory = ifx cpu_target == .X64 then "android/x64" else "android/arm64";
             cmake_preset = "linux-release";
             build_preset = "linux-release";
-            lib_file_pattern = "libbox3d.a";
+            lib_file_pattern = "box3d.a";
         case .PS5;
             build_dynamic_lib = false;
             lib_directory = "ps5";
             cmake_preset = "ps5";
             build_preset = "ps5-release";
-            lib_file_pattern = "libbox3d.a";
+            lib_file_pattern = "box3d.a";
         case;
             assert(false);
     }
@@ -234,17 +234,17 @@ FOOTER_TEMPLATE :: #string END
 #if OS == .WINDOWS {
     %1 :: #library,no_dll "windows/%1";
 } else #if OS == .LINUX {
-    %1 :: #library "linux/%1";
+    %1 :: #library,no_dll "linux/%1";
 } else #if OS == .MACOS {
-    %1 :: #library "macos/%1";
+    %1 :: #library,no_dll "macos/%1";
 } else #if OS == .ANDROID {
     #if CPU == .X64 {
-        %1 :: #library "android/x64/%1";
+        %1 :: #library,no_dll "android/x64/%1";
     } else #if CPU == .ARM64 {
-        %1 :: #library "android/arm64/%1";
+        %1 :: #library,no_dll "android/arm64/%1";
     }
 } else #if OS == .PS5 {
-    %1 :: #library "ps5/%1";
+    %1 :: #library,no_dll "ps5/%1";
 } else {
     #assert false;
 }
@@ -311,13 +311,13 @@ copy_compiled_library :: (box3d_dir: string, dest_dir: string, os_target: type_o
         case .WINDOWS;
             source_path = tprint("%/src/Release/box3d.lib", cmake_build_dir);
         case .LINUX;
-            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+            source_path = tprint("%/src/Release/box3d.a", cmake_build_dir);
         case .MACOS;
-            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+            source_path = tprint("%/src/Release/box3d.a", cmake_build_dir);
         case .ANDROID;
-            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+            source_path = tprint("%/src/Release/box3d.a", cmake_build_dir);
         case .PS5;
-            source_path = tprint("%/src/Release/libbox3d.a", cmake_build_dir);
+            source_path = tprint("%/src/Release/box3d.a", cmake_build_dir);
         case;
             print("ERROR: Unknown OS target\n");
             return false;
@@ -326,9 +326,9 @@ copy_compiled_library :: (box3d_dir: string, dest_dir: string, os_target: type_o
     dest_path := tprint("%/box3d.lib", dest_dir);
     if os_target != .WINDOWS {
         if debug {
-            dest_path = tprint("%/libbox3d_d.a", dest_dir);
+            dest_path = tprint("%/box3d_d.a", dest_dir);
         } else {
-            dest_path = tprint("%/libbox3d.a", dest_dir);
+            dest_path = tprint("%/box3d.a", dest_dir);
         }
     }
     
