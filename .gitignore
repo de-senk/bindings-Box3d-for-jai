@@ -1,4 +1,22 @@
-# Prerequisites
+
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# force include of windows linux mac android folder
+!windows/box3d.lib
+!linux/box3d.so
+!macos/box3d.dylib
+!android/box3d.so
+
 *.d
 
 # Object files
@@ -16,17 +34,6 @@
 *.gch
 *.pch
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
 
 # Executables
 *.exe
@@ -50,3 +57,21 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+build/
+imgui.ini
+settings.ini
+.vscode/
+.vs/
+.cap
+.DS_Store
+CMakeUserPresets.json
+.cache/
+.idea/
+.claude/
+.tmp/
+.fetchcontent-cache/
+build-dp/
+*.b3rec
+
+
