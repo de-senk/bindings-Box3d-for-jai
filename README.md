@@ -7,12 +7,8 @@ to generate bindings and compile the library, set yourself in the repo folder an
 box3d hello sailor:
 [https://box2d.org/documentation3d/hello.html](https://box2d.org/documentation3d/hello.html)
 
-IMPOTANT NOTE: 
-only tested on windows.
-no_dll is required #library,no_dll because its a static library.
-
 TODO: 
-add more samples
-try implementing immediate mode physics wrapper
+-add more samples.
+-try implementing immediate mode physics sample.
 
 
