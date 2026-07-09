@@ -215,17 +215,29 @@ generate_bindings :: (args: [] string, minimum_os_version: type_of(Build_Options
         auto_detect_enum_prefixes = true;
         log_stripped_declarations = false;
         generate_compile_time_struct_checks = false;
+
+        //here the thingy to replace definitons, just dont forget to also add them in HADER, FOOTER is canpsualted in #scope_file
+        visitor = (decl: *Declaration, parent_decl: *Declaration) -> Declaration_Visit_Result {
+            if decl.kind == .STRUCT && (
+                decl.name == "b3Vec2" 
+                || decl.name == "b3Vec3"
+                ) {
+                decl.decl_flags |= .OMIT_FROM_OUTPUT;
+                return .STOP; 
+            }
+            return .RECURSE;
+        };
     }
 
     output_filename := "bindings.jai";
     return generate_bindings(options, output_filename);
 }
 
-// As of v1.16 these functions are tagged STBIWDEF (ie, to be exported) at their definition, but they are not forward declared
-// at the top of the header file so the bindings generator does not pick them up.
-// The zlib_compress one is pretty useful while there is currently no jai zlib module, so we manually declare them here.
 HEADER_TEMPLATE :: #string END
 
+b3Vec2 :: Vector2;
+b3Vec3 :: Vector3;
+b3Quat_identity :b3Quat: { { 0.0, 0.0, 0.0 }, 1.0 };
 
 END
 

@@ -1,9 +1,12 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai c:/_paths/my_modules/box3d//generate.jai modules +jails_diagnostics import_dir c:/Users/iuser/.vscode/extensions/apparentlystudio.jails-0.2.22/out/metaprogram
+// jai ./generate.jai
 //
 
+b3Vec2 :: Vector2;
+b3Vec3 :: Vector3;
+b3Quat_identity :b3Quat: { { 0.0, 0.0, 0.0 }, 1.0 };
 
 
 
@@ -109,17 +112,6 @@ b3Hash :: (hash: u32, data: *u8, count: s32) -> u32 #foreign box3d;
 
 b3WriteBinaryFile :: (data: *void, size: s32, fileName: *u8) -> void #foreign box3d;
 b3ReadBinaryFile :: (prefix: *u8, fileName: *u8, memSize: *s32) -> *void #foreign box3d;
-
-b3Vec2 :: struct {
-    x: float;
-    y: float;
-}
-
-b3Vec3 :: struct {
-    x: float;
-    y: float;
-    z: float;
-}
 
 b3CosSin :: struct {
     cosine: float;
