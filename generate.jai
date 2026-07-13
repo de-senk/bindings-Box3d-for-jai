@@ -227,6 +227,7 @@ generate_bindings :: (args: [] string, minimum_os_version: type_of(Build_Options
             }
             return .RECURSE;
         };
+        
     }
 
     output_filename := "bindings.jai";
@@ -234,6 +235,12 @@ generate_bindings :: (args: [] string, minimum_os_version: type_of(Build_Options
 }
 
 HEADER_TEMPLATE :: #string END
+//from core.h
+B3_SECRET_COOKIE :: 1152023; 
+
+//from core.c
+// This allows the user to change the length units at runtime
+// b3_lengthUnitsPerMeter: float = 1.0; 
 
 b3Vec2 :: Vector2;
 b3Vec3 :: Vector3;

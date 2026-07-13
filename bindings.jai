@@ -3,6 +3,12 @@
 //
 // jai ./generate.jai
 //
+//from core.h
+B3_SECRET_COOKIE :: 1152023; 
+
+//from core.c
+// This allows the user to change the length units at runtime
+// b3_lengthUnitsPerMeter: float = 1.0; 
 
 b3Vec2 :: Vector2;
 b3Vec3 :: Vector3;
